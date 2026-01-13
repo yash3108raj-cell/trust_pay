@@ -325,3 +325,18 @@ function confirmExchange() {
   alert("Your balance is too low");
 }
 
+function showPopup() {
+  document.getElementById("referralPopup").style.display = "flex";
+}
+
+function closePopup() {
+  document.getElementById("referralPopup").style.display = "none";
+}
+
+/* Show popup once after login/register */
+window.addEventListener("load", () => {
+  if (!localStorage.getItem("referralPopupShown")) {
+    setTimeout(showPopup, 800);
+    localStorage.setItem("referralPopupShown", "true");
+  }
+});
