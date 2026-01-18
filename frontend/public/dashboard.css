@@ -2757,7 +2757,6 @@ body.auth {
 
 /* ===== TITLE ===== */
 .auth::after {
-  content: "Reset Password";
   display: block;
   font-size: 26px;
   font-weight: 600;
