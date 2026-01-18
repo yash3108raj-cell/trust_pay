@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
       q.innerText = d.q;
     });
 
-  window.login = function () {
-    fetch("/login", {
+  window.register = function () {
+    fetch("/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -27,12 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(r => r.json())
     .then(d => {
       if (d.ok) {
-        localStorage.setItem("isLoggedIn", "true");
-        window.location.href = "dashboard.html";
+        alert("Registered successfully");
+        location.href = "index.html";
       } else {
         alert(d.msg);
       }
-    })
-    .catch(() => alert("Server error"));
+    });
   };
 });
