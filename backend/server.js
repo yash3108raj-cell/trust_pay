@@ -4,7 +4,7 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 
 const app = express();
-const PORT = process.env.PORT || 3000 ;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,26 +18,14 @@ function readUsers() {
     fs.writeFileSync(FILE, "[]");
   }
 
-  let raw = fs.readFileSync(FILE, "utf8").trim();
-  if (!raw) {
-    fs.writeFileSync(FILE, "[]");
-    return [];
-  }
-
-  let parsed;
   try {
-    parsed = JSON.parse(raw);
+    const data = fs.readFileSync(FILE, "utf8");
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     fs.writeFileSync(FILE, "[]");
     return [];
   }
-
-  if (!Array.isArray(parsed)) {
-    fs.writeFileSync(FILE, "[]");
-    return [];
-  }
-
-  return parsed;
 }
 
 function saveUsers(data) {
@@ -53,13 +41,19 @@ app.get("/captcha", (req, res) => {
   const id = Date.now().toString();
 
   captchaStore[id] = a + b;
-  res.json({ id, q: `${a} + ${b} = ? `});
+
+  res.json({
+    id,
+    q: `${a} + ${b} = ?`
+  });
 });
 
 function verifyCaptcha(id, ans) {
+  if (!id || !ans) return false;
   if (!captchaStore[id]) return false;
+
   const ok = captchaStore[id] == ans;
-  delete captchaStore[id];
+  delete captchaStore[id]; // one-time use
   return ok;
 }
 
@@ -68,10 +62,11 @@ app.post("/register", async (req, res) => {
   const { mobile, password, cid, ans } = req.body;
 
   if (!verifyCaptcha(cid, ans)) {
-    return res.json({ ok: false, msg: "Captcha incorrect" });
+    return res.json({ ok: false, msg: " Captcha incorrect" });
   }
 
   let users = readUsers();
+
   if (users.find(u => u.mobile === mobile)) {
     return res.json({ ok: false, msg: "User already exists" });
   }
@@ -91,13 +86,9 @@ app.post("/register", async (req, res) => {
   res.json({ ok: true });
 });
 
-/* ================= LOGIN ================= */
+/* ================= LOGIN (NO CAPTCHA) ================= */
 app.post("/login", async (req, res) => {
-  const { mobile, password, cid, ans } = req.body;
-
-  if (!verifyCaptcha(cid, ans)) {
-    return res.json({ ok: false, msg: "Captcha incorrect" });
-  }
+  const { mobile, password } = req.body;
 
   const users = readUsers();
   const user = users.find(u => u.mobile === mobile);
@@ -114,7 +105,7 @@ app.post("/login", async (req, res) => {
   res.json({ ok: true });
 });
 
-/* ================= FORGOT ================= */
+/* ================= FORGOT PASSWORD ================= */
 app.post("/forgot", async (req, res) => {
   const { mobile, newpass, cid, ans } = req.body;
 
